@@ -1,0 +1,42 @@
+# Create the updated .gitignore
+@"
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Angular cache
+.angular/
+**/.angular/
+
+# Build output
+dist/
+**/dist/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment files
+.env
+**/.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Package locks
+package-lock.json
+
+# Test coverage
+coverage/
+
+# Temporary
+tmp/
+temp/
+"@ | Out-File -FilePath ".gitignore" -Encoding UTF8
+
+Write-Host ".gitignore updated!" -ForegroundColor Green

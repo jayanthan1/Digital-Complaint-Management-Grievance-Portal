@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "../FINAL_YEAR_PROJECT"
+		},
+		{
+			"path": "../Health_diagnostic_tool"
+		},
+		{
+			"path": "../../xampp/htdocs/alert"
+		},
+		{
+			"path": "../student"
+		},
+		{
+			"path": "../../JAPANESE PLACEMENTS/Project/OffResqApp"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "alert",
+		"java.project.sourcePaths": [],
+		"java.project.referencedLibraries": [
+			"c:\\projects_25_2\\java_console_projects\\mysql-connector-j-9.5.0.jar"
+		]
+	}
+}
