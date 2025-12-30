@@ -148,9 +148,9 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="title-cell">
-                    <span class="complaint-title">{{ element.title }}</span>
-                    <span class="complaint-id">#{{ element.id }}</span>
+                  <div class="title-cell" *ngIf="element">
+                    <span class="complaint-title">{{ element.title || 'N/A' }}</span>
+                    <span class="complaint-id" *ngIf="element.id">#{{ element.id }}</span>
                   </div>
                 </td>
               </ng-container>
@@ -164,9 +164,9 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="category-badge" [attr.data-category]="element.category">
+                  <div class="category-badge" [attr.data-category]="element?.category || 'general'" *ngIf="element">
                     <mat-icon>{{ getCategoryIcon(element.category) }}</mat-icon>
-                    {{ element.category }}
+                    {{ element.category || 'General' }}
                   </div>
                 </td>
               </ng-container>
@@ -180,7 +180,7 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="status-badge" [attr.data-status]="element.status">
+                  <div class="status-badge" [attr.data-status]="element?.status || 'open'" *ngIf="element">
                     <span class="status-dot"></span>
                     {{ formatStatus(element.status) }}
                   </div>
@@ -196,7 +196,7 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="priority-indicator" [attr.data-priority]="element.priority || 'medium'">
+                  <div class="priority-indicator" [attr.data-priority]="element?.priority || 'medium'" *ngIf="element">
                     <mat-icon>{{ getPriorityIcon(element.priority) }}</mat-icon>
                     {{ (element.priority || 'medium') | titlecase }}
                   </div>
@@ -212,10 +212,15 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="date-cell">
+                  <div class="date-cell" *ngIf="element.created_at; else noDate">
                     <span class="date">{{ element.created_at | date:'MMM d, y' }}</span>
                     <span class="time">{{ element.created_at | date:'h:mm a' }}</span>
                   </div>
+                  <ng-template #noDate>
+                    <div class="date-cell">
+                      <span class="date">N/A</span>
+                    </div>
+                  </ng-template>
                 </td>
               </ng-container>
 
@@ -228,7 +233,7 @@ import { StatusUpdateDialogComponent } from './status-update-dialog.component';
                   </div>
                 </th>
                 <td mat-cell *matCellDef="let element">
-                  <div class="actions-cell">
+                  <div class="actions-cell" *ngIf="element?.id">
                     <button 
                       mat-icon-button 
                       class="action-btn view-btn"
@@ -902,7 +907,7 @@ export class StaffDashboardComponent implements OnInit {
   complaints: Complaint[] = [];
   unassignedComplaints: Complaint[] = [];
   isLoading = false;
-  displayedColumns: string[] = ['title', 'category', 'status', 'created_at', 'actions'];
+  displayedColumns: string[] = ['title', 'category', 'status', 'priority', 'created_at', 'actions'];
   activeTab: 'assigned' | 'available' = 'assigned';
 
   stats = [
@@ -927,41 +932,63 @@ export class StaffDashboardComponent implements OnInit {
     
     // Load both assigned and unassigned complaints in parallel
     Promise.all([
-      this.complaintService.getStaffAssignedComplaints().toPromise(),
-      this.complaintService.getUnassignedComplaints().toPromise()
+      this.complaintService.getStaffAssignedComplaints().toPromise() || Promise.resolve(null),
+      this.complaintService.getUnassignedComplaints().toPromise() || Promise.resolve(null)
     ]).then(([assignedResponse, unassignedResponse]) => {
-      let assignedComplaints: Complaint[] = [];
-      let unassignedComplaints: Complaint[] = [];
-      
-      if (assignedResponse?.success && assignedResponse.data) {
-        assignedComplaints = assignedResponse.data;
+      try {
+        let assignedComplaints: Complaint[] = [];
+        let unassignedComplaints: Complaint[] = [];
+        
+        // Validate and extract assigned complaints
+        if (assignedResponse?.success && Array.isArray(assignedResponse.data)) {
+          assignedComplaints = assignedResponse.data.filter(c => c && typeof c === 'object');
+        }
+        
+        // Validate and extract unassigned complaints
+        if (unassignedResponse?.success && Array.isArray(unassignedResponse.data)) {
+          unassignedComplaints = unassignedResponse.data.filter(c => c && typeof c === 'object');
+        }
+        
+        // Merge both assigned and unassigned complaints
+        this.complaints = [...assignedComplaints, ...unassignedComplaints];
+        this.unassignedComplaints = unassignedComplaints;
+        this.updateStats();
+        this.isLoading = false;
+      } catch (error) {
+        console.error('[StaffDashboard] Error processing complaints:', error);
+        this.showError('Failed to process complaints data');
+        this.isLoading = false;
       }
-      if (unassignedResponse?.success && unassignedResponse.data) {
-        unassignedComplaints = unassignedResponse.data;
-      }
-      
-      // Merge both assigned and unassigned complaints
-      this.complaints = [...assignedComplaints, ...unassignedComplaints];
-      this.unassignedComplaints = unassignedComplaints;
-      this.updateStats();
-      this.isLoading = false;
     }).catch(error => {
-      this.snackBar.open('Failed to load complaints', 'Close', { 
-        duration: 5000,
-        panelClass: ['error-snackbar']
-      });
+      console.error('[StaffDashboard] Error loading complaints:', error);
+      this.showError('Failed to load complaints. Please try again.');
       this.isLoading = false;
     });
   }
 
+  private showError(message: string): void {
+    this.snackBar.open(`❌ ${message}`, 'Close', { 
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
+  }
+
   updateStats(): void {
-    this.stats[0].value = this.complaints.length; // Total (assigned + unassigned)
-    this.stats[1].value = this.complaints.filter(c => c.status === 'in-progress').length;
-    this.stats[2].value = this.complaints.filter(c => c.status === 'resolved').length;
-    this.stats[3].value = this.complaints.filter(c => c.status === 'assigned' || c.status === 'open').length;
+    try {
+      this.stats[0].value = this.complaints?.length || 0; // Total (assigned + unassigned)
+      this.stats[1].value = this.complaints?.filter(c => c?.status === 'in-progress')?.length || 0;
+      this.stats[2].value = this.complaints?.filter(c => c?.status === 'resolved')?.length || 0;
+      this.stats[3].value = this.complaints?.filter(c => c?.status === 'assigned' || c?.status === 'open')?.length || 0;
+    } catch (error) {
+      console.error('[StaffDashboard] Error updating stats:', error);
+      this.stats.forEach(stat => stat.value = 0);
+    }
   }
 
   getCategoryIcon(category: string): string {
+    if (!category || typeof category !== 'string') {
+      return 'folder';
+    }
     const icons: { [key: string]: string } = {
       'technical': 'computer',
       'billing': 'receipt',
@@ -973,60 +1000,91 @@ export class StaffDashboardComponent implements OnInit {
       'network': 'wifi',
       'default': 'folder'
     };
-    return icons[category?.toLowerCase()] || icons['default'];
+    return icons[category.toLowerCase()] || icons['default'];
   }
 
   getPriorityIcon(priority: string): string {
+    if (!priority || typeof priority !== 'string') {
+      return 'remove';
+    }
     const icons: { [key: string]: string } = {
       'low': 'arrow_downward',
       'medium': 'remove',
       'high': 'arrow_upward'
     };
-    return icons[priority?.toLowerCase()] || icons['medium'];
+    return icons[priority.toLowerCase()] || icons['medium'];
   }
 
   formatStatus(status: string): string {
-    return status?.replace(/-/g, ' ') || status;
+    if (!status || typeof status !== 'string') {
+      return 'Unknown';
+    }
+    return status.replace(/-/g, ' ').charAt(0).toUpperCase() + status.replace(/-/g, ' ').slice(1);
   }
 
   claimComplaint(complaintId: number): void {
+    if (!complaintId) {
+      this.showError('Invalid complaint ID');
+      return;
+    }
+
     this.isLoading = true;
-    // Get the current user ID from localStorage (you may need to adjust based on your auth service)
     const userId = this.getUserIdFromToken();
+    
+    if (!userId || userId === 0) {
+      this.showError('Unable to identify user. Please log in again.');
+      this.isLoading = false;
+      return;
+    }
     
     this.complaintService.assignToStaff(complaintId, userId).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response?.success) {
           this.snackBar.open('✅ Complaint claimed successfully!', 'Close', {
             duration: 4000,
             panelClass: ['success-snackbar']
           });
           this.loadComplaints();
+        } else {
+          this.showError(response?.error || 'Failed to claim complaint');
+          this.isLoading = false;
         }
       },
       error: (error) => {
-        this.snackBar.open('❌ Failed to claim complaint', 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        console.error('[StaffDashboard] Claim complaint error:', error);
+        this.showError(error?.error?.message || 'Failed to claim complaint');
         this.isLoading = false;
       }
     });
   }
 
   private getUserIdFromToken(): number {
-    // Decode JWT token to get user ID
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.id;
-      } catch (e) {
-        console.error('Failed to decode token');
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        console.warn('[StaffDashboard] No valid token found in localStorage');
         return 0;
       }
+      
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.warn('[StaffDashboard] Invalid token format');
+        return 0;
+      }
+
+      const payload = JSON.parse(atob(parts[1]));
+      const userId = payload?.id || payload?.userId || payload?.sub;
+      
+      if (!userId || typeof userId !== 'number') {
+        console.warn('[StaffDashboard] Invalid user ID in token:', userId);
+        return 0;
+      }
+      
+      return userId;
+    } catch (error) {
+      console.error('[StaffDashboard] Failed to decode token:', error);
+      return 0;
     }
-    return 0;
   }
 
   switchTab(tab: 'assigned' | 'available'): void {
@@ -1034,35 +1092,51 @@ export class StaffDashboardComponent implements OnInit {
   }
 
   openStatusDialog(complaint: Complaint): void {
+    if (!complaint || !complaint.id) {
+      this.showError('Invalid complaint');
+      return;
+    }
+
     const dialogRef = this.dialog.open(StatusUpdateDialogComponent, {
       width: '400px',
-      data: { complaint, statusOptions: ['assigned', 'in-progress', 'resolved'] }
+      data: { complaint, statusOptions: ['open', 'assigned', 'in-progress', 'resolved'] },
+      disableClose: false
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result && result.status) {
-        this.updateComplaintStatus(complaint.id, result.status);
+      try {
+        if (result?.status && result.status !== complaint.status) {
+          this.updateComplaintStatus(complaint.id, result.status);
+        }
+      } catch (error) {
+        console.error('[StaffDashboard] Dialog result error:', error);
       }
     });
   }
 
   updateComplaintStatus(complaintId: number, status: string): void {
+    if (!complaintId || !status) {
+      this.showError('Invalid complaint or status');
+      return;
+    }
+
     this.isLoading = true;
     this.complaintService.updateComplaintStatus(complaintId, status).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response?.success) {
           this.snackBar.open(`✅ Status updated to ${status}!`, 'Close', {
             duration: 4000,
             panelClass: ['success-snackbar']
           });
           this.loadComplaints();
+        } else {
+          this.showError(response?.error || 'Failed to update status');
+          this.isLoading = false;
         }
       },
       error: (error) => {
-        this.snackBar.open('❌ Failed to update complaint status', 'Close', {
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
+        console.error('[StaffDashboard] Update status error:', error);
+        this.showError(error?.error?.message || 'Failed to update complaint status');
         this.isLoading = false;
       }
     });

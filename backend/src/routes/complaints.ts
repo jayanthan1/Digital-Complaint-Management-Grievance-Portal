@@ -17,8 +17,14 @@ router.get('/my-complaints', ComplaintController.getMyComplaints);
 // Get complaints assigned to staff
 router.get('/staff-assigned', ComplaintController.getStaffComplaints);
 
-// Get unassigned complaints (available for staff to pick up)
+// Get statistics (Admin only) - must be before /:id route
+router.get('/statistics/overview', roleMiddleware('admin'), ComplaintController.getStatistics);
+
+// Get unassigned complaints (available for staff to pick up) - must be before /:id route
 router.get('/unassigned/available', ComplaintController.getUnassignedComplaints);
+
+// Get all complaints (Admin only) - must be before /:id route
+router.get('/', roleMiddleware('admin'), ComplaintController.getAllComplaints);
 
 // Get complaint by ID
 router.get('/:id', ComplaintController.getComplaintById);
@@ -28,11 +34,5 @@ router.put('/:id/status', validateComplaintUpdate, handleValidationErrors, Compl
 
 // Assign complaint to staff (Admin only)
 router.put('/:id/assign', roleMiddleware('admin'), ComplaintController.assignToStaff);
-
-// Get all complaints (Admin only)
-router.get('/', roleMiddleware('admin'), ComplaintController.getAllComplaints);
-
-// Get statistics (Admin only)
-router.get('/statistics/overview', roleMiddleware('admin'), ComplaintController.getStatistics);
 
 export default router;

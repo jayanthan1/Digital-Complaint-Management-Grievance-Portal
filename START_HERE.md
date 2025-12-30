@@ -17,8 +17,8 @@ Your complete full-stack project has been successfully scaffolded and is ready t
 - ✅ Database schema for MySQL
 - ✅ Full error handling and validation
 
-### Frontend (Angular 16 + Material Design)
-- ✅ Complete web application
+### Frontend (Angular 18 + Material Design)
+- ✅ Complete web application with standalone components
 - ✅ User authentication pages
 - ✅ Complaint management features
 - ✅ Staff dashboard
@@ -85,7 +85,7 @@ Access at: **http://localhost:4200**
 
 | Layer | Technologies |
 |-------|-------------|
-| Frontend | Angular 16, Material Design, RxJS, TypeScript |
+| Frontend | Angular 18, Material Design, RxJS, TypeScript 5.4 |
 | Backend | Node.js, Express, TypeScript |
 | Database | MySQL 8.0+ |
 | Auth | JWT, bcryptjs |

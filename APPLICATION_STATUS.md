@@ -20,9 +20,9 @@
 - **Status**: ✅ Running
 - **URL**: `http://localhost:4200`
 - **Port**: 4200
-- **Framework**: Angular 16
+- **Framework**: Angular 18 (Standalone Components)
 - **Build Status**: ✅ Compiled Successfully
-- **Bundle Size**: 3.84 MB (Initial), 1.27 MB (Lazy chunks)
+- **Bundle Size**: 4.67 MB (Initial), 2.58 MB (Lazy chunks)
 
 ---
 

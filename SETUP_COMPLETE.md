@@ -30,16 +30,17 @@ Your full-stack project has been successfully scaffolded with all necessary file
 - Proper relationships and constraints
 - Indexed columns for performance
 
-### Frontend (Angular 16 + Material Design)
+### Frontend (Angular 18 + Material Design)
 
 ✅ **Complete Web Application** with:
-- User registration and login
+- User registration and login (standalone components)
 - Dashboard for viewing complaints
 - Complaint creation and detail views
 - Staff dashboard for assigned complaints
 - Admin dashboard with analytics
 - Role-based route guards
 - HTTP interceptor for automatic token injection
+- Angular 18 with modern, standalone component architecture
 
 ✅ **Components**:
 - Auth (Login, Register)

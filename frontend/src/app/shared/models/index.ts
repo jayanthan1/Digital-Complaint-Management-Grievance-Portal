@@ -23,6 +23,7 @@ export interface Complaint {
   description: string;
   category: string;
   status: ComplaintStatus;
+  priority?: 'low' | 'medium' | 'high';
   attachments?: string;
   created_at?: Date;
   updated_at?: Date;

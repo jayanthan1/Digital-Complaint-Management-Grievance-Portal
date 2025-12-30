@@ -1276,16 +1276,30 @@ export class ComplaintListComponent implements OnInit {
     this.isLoading = true;
     this.complaintService.getMyComplaints().subscribe({
       next: (response) => {
-        if (response.success && response.data) {
-          this.complaints = response.data;
-          this.updateStats();
+        try {
+          if (response?.success && Array.isArray(response.data)) {
+            this.complaints = response.data || [];
+            this.updateStats();
+          } else {
+            console.warn('[ComplaintList] Invalid response structure:', response);
+            this.complaints = [];
+          }
+        } catch (error) {
+          console.error('[ComplaintList] Error processing complaints:', error);
+          this.snackBar.open('❌ Error processing complaints data', 'Close', { 
+            duration: 5000,
+            panelClass: ['error-snackbar']
+          });
         }
       },
       error: (error) => {
-        this.snackBar.open('Failed to load complaints', 'Close', { 
+        console.error('[ComplaintList] Failed to load complaints:', error);
+        const errorMsg = error?.error?.message || 'Failed to load complaints. Please try again.';
+        this.snackBar.open(`❌ ${errorMsg}`, 'Close', { 
           duration: 5000,
           panelClass: ['error-snackbar']
         });
+        this.complaints = [];
       },
       complete: () => {
         this.isLoading = false;

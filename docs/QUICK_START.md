@@ -1,9 +1,9 @@
 # Quick Start Guide
 
 ## Prerequisites
-- Node.js v16+ 
+- Node.js v18+ 
 - MySQL Server v8.0+
-- Angular CLI 16+
+- Angular CLI 18+
 - npm/yarn
 
 ## Step 1: Backend Setup (Terminal 1)

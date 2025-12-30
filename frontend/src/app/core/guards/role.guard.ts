@@ -16,20 +16,35 @@ export class RoleGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    const user = this.authService.getCurrentUser();
+    try {
+      const user = this.authService.getCurrentUser();
 
-    if (!user) {
+      if (!user) {
+        console.warn('[RoleGuard] No user found, redirecting to login');
+        this.router.navigate(['/auth/login']);
+        return false;
+      }
+
+      const requiredRoles: UserRole[] = route.data['roles'] || [];
+
+      // If no roles specified, allow access
+      if (requiredRoles.length === 0) {
+        return true;
+      }
+
+      // Check if user's role is in required roles
+      if (requiredRoles.includes(user.role)) {
+        return true;
+      }
+
+      // User doesn't have required role
+      console.warn('[RoleGuard] User role not authorized. Required:', requiredRoles, 'User role:', user.role);
+      this.router.navigate(['/not-authorized']);
+      return false;
+    } catch (error) {
+      console.error('[RoleGuard] Error checking user role:', error);
       this.router.navigate(['/auth/login']);
       return false;
     }
-
-    const requiredRoles: UserRole[] = route.data['roles'] || [];
-
-    if (requiredRoles.length === 0 || requiredRoles.includes(user.role)) {
-      return true;
-    }
-
-    this.router.navigate(['/not-authorized']);
-    return false;
   }
 }

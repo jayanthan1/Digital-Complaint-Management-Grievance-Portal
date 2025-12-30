@@ -24,8 +24,8 @@
 - ✅ `backend/tsconfig.json` - TypeScript config
 - ✅ `backend/.env` - Environment variables
 
-### Frontend (Angular 16)
-- ✅ `frontend/src/main.ts` - Angular bootstrap
+### Frontend (Angular 18)
+- ✅ `frontend/src/main.ts` - Angular bootstrap with standalone API
 - ✅ `frontend/src/styles.css` - Global styles (ENHANCED)
 - ✅ `frontend/src/index.html` - HTML entry point
 - ✅ `frontend/src/app/app.component.ts` - Root component (ENHANCED)

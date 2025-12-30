@@ -11,7 +11,7 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | **Backend** | ✅ Complete | Express.js running on port 5000 |
-| **Frontend** | ✅ Complete | Angular 16 running on port 4200 |
+| **Frontend** | ✅ Complete | Angular 18 running on port 4200 |
 | **Database** | ✅ Schema Ready | MySQL schema created, awaiting init |
 | **UI/UX** | ✅ Enhanced | Modern Material Design with gradients |
 | **Authentication** | ✅ Complete | JWT + Bcrypt implemented |

@@ -23,9 +23,9 @@ This project implements a comprehensive complaint management system with the fol
 - **Validation**: express-validator
 
 ### Frontend
-- **Framework**: Angular 16
-- **UI Library**: Angular Material
-- **Language**: TypeScript
+- **Framework**: Angular 18 (Standalone Components)
+- **UI Library**: Angular Material 18
+- **Language**: TypeScript 5.4
 - **HTTP Client**: Angular HttpClient
 - **State Management**: RxJS Observables
 

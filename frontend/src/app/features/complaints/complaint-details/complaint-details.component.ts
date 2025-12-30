@@ -106,14 +106,14 @@ import { Complaint } from '../../../shared/models';
 
           <!-- Details Grid -->
           <div class="details-grid" @staggerAnimation>
-            <div class="detail-item">
+            <div class="detail-item" *ngIf="complaint.created_at">
               <div class="detail-icon">
                 <mat-icon>schedule</mat-icon>
               </div>
               <div class="detail-content">
                 <span class="detail-label">Created On</span>
-                <span class="detail-value">{{ complaint.created_at | date:'MMM d, y' }}</span>
-                <span class="detail-time">{{ complaint.created_at | date:'h:mm a' }}</span>
+                <span class="detail-value">{{ (complaint.created_at | date:'MMM d, y') || 'N/A' }}</span>
+                <span class="detail-time">{{ (complaint.created_at | date:'h:mm a') || 'N/A' }}</span>
               </div>
             </div>
 
@@ -123,12 +123,12 @@ import { Complaint } from '../../../shared/models';
               </div>
               <div class="detail-content">
                 <span class="detail-label">Last Updated</span>
-                <span class="detail-value">{{ complaint.updated_at | date:'MMM d, y' }}</span>
-                <span class="detail-time">{{ complaint.updated_at | date:'h:mm a' }}</span>
+                <span class="detail-value">{{ (complaint.updated_at | date:'MMM d, y') || 'N/A' }}</span>
+                <span class="detail-time">{{ (complaint.updated_at | date:'h:mm a') || 'N/A' }}</span>
               </div>
             </div>
 
-            <div class="detail-item" *ngIf="complaint.staff_id">
+            <div class="detail-item" *ngIf="complaint.staff_id && complaint.staff_id > 0">
               <div class="detail-icon">
                 <mat-icon>person</mat-icon>
               </div>
@@ -144,9 +144,9 @@ import { Complaint } from '../../../shared/models';
               </div>
               <div class="detail-content">
                 <span class="detail-label">Priority</span>
-                <div class="priority-indicator" [attr.data-priority]="complaint.priority || 'medium'">
+                <div class="priority-indicator" [attr.data-priority]="(complaint.priority && complaint.priority.length > 0) ? complaint.priority : 'medium'">
                   <mat-icon>{{ getPriorityIcon(complaint.priority) }}</mat-icon>
-                  {{ (complaint.priority || 'medium') | titlecase }}
+                  {{ ((complaint.priority && complaint.priority.length > 0) ? complaint.priority : 'medium') | titlecase }}
                 </div>
               </div>
             </div>
@@ -702,6 +702,25 @@ import { Complaint } from '../../../shared/models';
       padding-left: 12px;
     }
 
+    ::ng-deep .full-width .mat-mdc-form-field-label {
+      color: var(--text-secondary) !important;
+      text-decoration: none !important;
+      line-height: 1.5 !important;
+    }
+
+    ::ng-deep .full-width .mdc-floating-label {
+      text-decoration: none !important;
+    }
+
+    ::ng-deep .full-width.mat-focused .mat-mdc-form-field-label {
+      color: #667eea !important;
+      text-decoration: none !important;
+    }
+
+    ::ng-deep .full-width.mat-focused .mdc-floating-label {
+      text-decoration: none !important;
+    }
+
     ::ng-deep .full-width.mat-focused .mat-mdc-notched-outline {
       border-color: #667eea !important;
       border-width: 2px !important;
@@ -945,24 +964,42 @@ export class ComplaintDetailsComponent implements OnInit {
   }
 
   loadComplaint(id: number): void {
-    this.complaintService.getComplaintById(id).subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.complaint = response.data;
-          this.statusForm.patchValue({ status: this.complaint.status });
+    try {
+      this.complaintService.getComplaintById(id).subscribe({
+        next: (response) => {
+          try {
+            if (response?.success && response.data) {
+              this.complaint = response.data;
+              this.statusForm.patchValue({ status: this.complaint.status });
+            } else {
+              throw new Error('Invalid response format');
+            }
+          } catch (error) {
+            console.error('[ComplaintDetails] Error processing complaint data:', error);
+            this.snackBar.open('❌ Error processing complaint data', 'Close', { 
+              duration: 5000,
+              horizontalPosition: 'end',
+              verticalPosition: 'top'
+            });
+          }
+        },
+        error: (error) => {
+          console.error('[ComplaintDetails] Failed to load complaint:', error);
+          const errorMsg = error?.error?.message || 'Failed to load complaint. Please try again.';
+          this.snackBar.open(`❌ ${errorMsg}`, 'Close', { 
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top'
+          });
+        },
+        complete: () => {
+          this.isLoading = false;
         }
-      },
-      error: (error) => {
-        this.snackBar.open('❌ Failed to load complaint', 'Close', { 
-          duration: 5000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top'
-        });
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
+      });
+    } catch (error) {
+      console.error('[ComplaintDetails] Error in loadComplaint:', error);
+      this.isLoading = false;
+    }
   }
 
   updateStatus(): void {
