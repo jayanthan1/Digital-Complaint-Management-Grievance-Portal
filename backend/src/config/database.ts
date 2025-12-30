@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'jayanthan$2005',
-  database: process.env.DB_NAME || 'complaint_management',
-  port: parseInt(process.env.DB_PORT || '3306'),
+  host: process.env.MYSQL_HOST as string,
+  user: process.env.MYSQL_USER as string,
+  password: process.env.MYSQL_PASSWORD as string,
+  database: process.env.MYSQL_DATABASE as string,
+  port: Number(process.env.MYSQL_PORT),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -22,9 +22,9 @@ pool.getConnection()
   })
   .catch((error: any) => {
     console.error('❌ Database connection failed:', error.message);
-    console.error('Host:', process.env.DB_HOST || 'localhost');
-    console.error('User:', process.env.DB_USER || 'root');
-    console.error('Database:', process.env.DB_NAME || 'complaint_management');
+    console.error('Host:', process.env.MYSQL_HOST);
+    console.error('User:', process.env.MYSQL_USER);
+    console.error('Database:', process.env.MYSQL_DATABASE);
   });
 
 export default pool;
